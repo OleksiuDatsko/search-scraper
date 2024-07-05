@@ -1,35 +1,66 @@
 package main
 
 import (
-	"flag"
+	"database/sql"
+	"embed"
 	"fmt"
+	"log"
 	"net/http"
-	"search_scraper/csv"
-	"search_scraper/scraper"
-	"search_scraper/web"
+	"search_scraper/src/handlers"
+	"search_scraper/src/storage"
+
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/pressly/goose/v3"
 )
 
+//go:embed migrations/*.sql
+var embedMigrations embed.FS
+
 func main() {
-	csvPath := flag.String("csv_path", "./test.csv", "Path to the CSV file (exported google sheet)")
-	csvCollumn := flag.Int("csv_column", 2, "Column index where urls are stored")
-	searchQuery := flag.String("search_query", "", "Search query")
-	searchLinks := flag.Int("search_links", 100, "Search links count")
-	searchLinksPerPage := flag.Int("slpp", 10, "Search links per page")
-	serverPort := flag.Int("server_port", 8080, "Server port")
-	flag.Parse()
+	fmt.Println("Connecting to database...")
+	db, err := sql.Open("sqlite3", "./db.sqlite")
+	if err != nil {
+		fmt.Printf("Error: %s \n", err)
+		return
+	}
+	defer func() {
+		db.Close()
+		fmt.Println("Closing DB connection")
+	}()
+	fmt.Println("Connected")
+	st := storage.Init(db)
 
-	d := csv.GetAllDoaminNamesFromCsv(*csvPath, *csvCollumn)
-	fmt.Println(len(d))
-	fu := scraper.ScrapeSearch(*searchQuery, *searchLinks, *searchLinksPerPage, d)
+	fmt.Println("Running migrations...")
+	goose.SetBaseFS(embedMigrations)
 
-	fn := web.GenerateIndexFile(fu)
-
-	for i, url := range fu {
-		fmt.Printf("%d:\t%s\n", i, csv.GetDomainFromUrl(url))
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		panic(err)
 	}
 
-	fmt.Printf("Generated index file: %s\nStarting server...\nhttp://localhost:%d\n", fn, *serverPort)
+	if err := goose.Up(db, "migrations"); err != nil {
+		panic(err)
+	}
+	fmt.Println("Done")
 
-	http.Handle("/", http.FileServer(http.Dir("./")))
-	http.ListenAndServe(fmt.Sprintf(":%d", *serverPort), nil)
+	http.HandleFunc("GET /whitelist", handlers.GetWhitelist(st))
+	http.HandleFunc("POST /whitelist", handlers.PostLinkToWhitelist(st))
+	http.HandleFunc("GET /whitelist/{id}", handlers.GetWhitelistLink(st))
+	http.HandleFunc("DELETE /whitelist/{id}", handlers.DeleteWhitelistLink(st))
+	http.HandleFunc("PUT /whitelist/{id}", handlers.PutWhitelistLink(st))
+
+	http.HandleFunc("GET /blacklist", handlers.GetBlacklist(st))
+	http.HandleFunc("POST /blacklist", handlers.PostLinkToBlacklist(st))
+	http.HandleFunc("GET /blacklist/{id}", handlers.GetBlacklistLink(st))
+	http.HandleFunc("DELETE /blacklist/{id}", handlers.DeleteBlacklistLink(st))
+	http.HandleFunc("PUT /blacklist/{id}", handlers.PutBlacklistLink(st))
+
+
+	server := &http.Server{
+		Addr: ":8080",
+	}
+
+	err = server.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
