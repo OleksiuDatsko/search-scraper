@@ -7,9 +7,8 @@ import (
 	"regexp"
 )
 
-var PATTERN = `https?:\/\/([\w-\.]+)/.*`
+var PATTERN = `([\w-\.]+)/.*`
 var re = regexp.MustCompile(PATTERN)
-
 
 func GetDomainFromUrl(url string) string {
 	matches := re.FindStringSubmatch(url)
@@ -56,8 +55,9 @@ func GetAllDoaminNamesFromCsv(p string, c int) []string {
 			results[0]++
 		} else {
 			results[1]++
+			fmt.Println(row[c])
 		}
 	}
-	fmt.Printf("Total: %d, No match: %d (%2.2f%%)\n", results[0]+results[1], results[1], 100*float64(results[0])/float64(results[1]+results[0]))
+	fmt.Printf("Total: %d, No match: %d (%2.2f%%) | %d\n", results[0]+results[1], results[1], 100*float64(results[0])/float64(results[1]+results[0]), len(collum_data))
 	return collum_data
 }
