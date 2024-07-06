@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"search_scraper/middelware"
 	"search_scraper/src/handlers"
+	"search_scraper/src/middelware"
 	"search_scraper/src/storage"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -29,7 +29,11 @@ func main() {
 		fmt.Println("Closing DB connection")
 	}()
 	fmt.Println("Connected")
-	st := storage.Init(db)
+	st, err := storage.Init(db)
+	if err != nil {
+		fmt.Printf("Error: %s \n", err)
+		return
+	}
 
 	fmt.Println("Running migrations...")
 	goose.SetBaseFS(embedMigrations)
@@ -56,7 +60,9 @@ func main() {
 	http.HandleFunc("PUT /blacklist/{id}", middelware.LogRequest(handlers.PutLinkslistLink(st, "blacklist")))
 
 	http.HandleFunc("GET /findedlist", middelware.LogRequest(handlers.GetLinkslist(st, "findedlist")))
+	http.HandleFunc("POST /findedlist", middelware.LogRequest(handlers.PostLinkToLinkslist(st, "findedlist")))
 	http.HandleFunc("GET /findedlist/{id}", middelware.LogRequest(handlers.GetLinkslistLink(st, "findedlist")))
+	http.HandleFunc("PUT /findedlist/{id}", middelware.LogRequest(handlers.PutLinkslistLink(st, "findedlist")))
 	http.HandleFunc("DELETE /findedlist/{id}", middelware.LogRequest(handlers.DeleteLinkslistLink(st, "findedlist")))
 
 	fmt.Println("Starting server...")

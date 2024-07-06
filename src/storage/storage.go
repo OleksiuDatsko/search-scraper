@@ -4,14 +4,21 @@ import (
 	"database/sql"
 	"fmt"
 	"search_scraper/src/types"
+	"search_scraper/src/utils"
 )
 
 type Storage struct {
 	db *sql.DB
 }
 
-func Init(db *sql.DB) *Storage {
-	return &Storage{db}
+var ErrDBIsNil = fmt.Errorf("db is nil")
+var ErrOnURL = fmt.Errorf("no url")
+
+func Init(db *sql.DB) (*Storage, error) {
+	if db == nil {
+		return nil, ErrDBIsNil
+	}
+	return &Storage{db}, nil
 }
 
 func (s *Storage) GetList(listType string) ([]types.Link, error) {
@@ -37,6 +44,16 @@ func (s *Storage) GetList(listType string) ([]types.Link, error) {
 
 func (s *Storage) AddLinkToList(listType string, link types.Link) error {
 	insertQuery := fmt.Sprintf("INSERT INTO %s (domain, url, filter_type) VALUES (?, ?, ?);", listType)
+	if link.Url == "" {
+		return ErrOnURL
+	}
+	if link.FilterType == "" {
+		link.FilterType = "domain"
+	}
+	if link.Domain == "" {
+		link.Domain = utils.GetDomainFromURL(link.Url)
+	}
+
 	_, err := s.db.Exec(insertQuery, link.Domain, link.Url, link.FilterType)
 	return err
 }
@@ -53,8 +70,22 @@ func (s *Storage) GetLinkFromList(listType string, id int) (types.Link, error) {
 }
 
 func (s *Storage) UpdateLinkInList(listType string, link types.Link) error {
+	old, err := s.GetLinkFromList(listType, link.ID)
+	if err != nil {
+		return err
+	}
+	if link.Url == "" {
+		link.Url = old.Url
+	}
+	if link.Domain == "" {
+		link.Domain = old.Domain
+	}
+	if link.FilterType == "" {
+		link.FilterType = old.FilterType
+	}
+
 	insertQuery := fmt.Sprintf("UPDATE %s SET domain = ?, url = ?, filter_type = ? WHERE id = ?", listType)
-	_, err := s.db.Exec(insertQuery, link.Domain, link.Url, link.FilterType, link.ID)
+	_, err = s.db.Exec(insertQuery, link.Domain, link.Url, link.FilterType, link.ID)
 	if err != nil {
 		return err
 	}
@@ -62,8 +93,12 @@ func (s *Storage) UpdateLinkInList(listType string, link types.Link) error {
 }
 
 func (s *Storage) DeleteLinkFromList(listType string, id int) error {
+	_, err := s.GetLinkFromList(listType, id)
+	if err != nil {
+		return err
+	}
 	insertQuery := fmt.Sprintf("DELETE FROM %s WHERE id = ?", listType)
-	_, err := s.db.Exec(insertQuery, id)
+	_, err = s.db.Exec(insertQuery, id)
 	if err != nil {
 		return err
 	}
