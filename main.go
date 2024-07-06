@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"search_scraper/middelware"
 	"search_scraper/src/handlers"
 	"search_scraper/src/storage"
 
@@ -42,19 +43,23 @@ func main() {
 	}
 	fmt.Println("Done")
 
-	http.HandleFunc("GET /whitelist", handlers.GetWhitelist(st))
-	http.HandleFunc("POST /whitelist", handlers.PostLinkToWhitelist(st))
-	http.HandleFunc("GET /whitelist/{id}", handlers.GetWhitelistLink(st))
-	http.HandleFunc("DELETE /whitelist/{id}", handlers.DeleteWhitelistLink(st))
-	http.HandleFunc("PUT /whitelist/{id}", handlers.PutWhitelistLink(st))
+	http.HandleFunc("GET /whitelist", middelware.LogRequest(handlers.GetLinkslist(st, "whitelist")))
+	http.HandleFunc("POST /whitelist", middelware.LogRequest(handlers.PostLinkToLinkslist(st, "whitelist")))
+	http.HandleFunc("GET /whitelist/{id}", middelware.LogRequest(handlers.GetLinkslistLink(st, "whitelist")))
+	http.HandleFunc("DELETE /whitelist/{id}", middelware.LogRequest(handlers.DeleteLinkslistLink(st, "whitelist")))
+	http.HandleFunc("PUT /whitelist/{id}", middelware.LogRequest(handlers.PutLinkslistLink(st, "whitelist")))
 
-	http.HandleFunc("GET /blacklist", handlers.GetBlacklist(st))
-	http.HandleFunc("POST /blacklist", handlers.PostLinkToBlacklist(st))
-	http.HandleFunc("GET /blacklist/{id}", handlers.GetBlacklistLink(st))
-	http.HandleFunc("DELETE /blacklist/{id}", handlers.DeleteBlacklistLink(st))
-	http.HandleFunc("PUT /blacklist/{id}", handlers.PutBlacklistLink(st))
+	http.HandleFunc("GET /blacklist", middelware.LogRequest(handlers.GetLinkslist(st, "blacklist")))
+	http.HandleFunc("POST /blacklist", middelware.LogRequest(handlers.PostLinkToLinkslist(st, "blacklist")))
+	http.HandleFunc("GET /blacklist/{id}", middelware.LogRequest(handlers.GetLinkslistLink(st, "blacklist")))
+	http.HandleFunc("DELETE /blacklist/{id}", middelware.LogRequest(handlers.DeleteLinkslistLink(st, "blacklist")))
+	http.HandleFunc("PUT /blacklist/{id}", middelware.LogRequest(handlers.PutLinkslistLink(st, "blacklist")))
 
+	http.HandleFunc("GET /findedlist", middelware.LogRequest(handlers.GetLinkslist(st, "findedlist")))
+	http.HandleFunc("GET /findedlist/{id}", middelware.LogRequest(handlers.GetLinkslistLink(st, "findedlist")))
+	http.HandleFunc("DELETE /findedlist/{id}", middelware.LogRequest(handlers.DeleteLinkslistLink(st, "findedlist")))
 
+	fmt.Println("Starting server...")
 	server := &http.Server{
 		Addr: ":8080",
 	}

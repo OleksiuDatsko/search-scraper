@@ -20,7 +20,7 @@ CREATE TABLE
         id INTEGER PRIMARY KEY,
         domain VARCHAR(255) NOT NULL,
         url VARCHAR(255) NOT NULL,
-        filter_type VARCHAR(5) NOT NULL -- url or domain
+        filter_type VARCHAR(5) NOT NULL DEFAULT 'domain' -- url or domain
     );
 
 -- +goose Down

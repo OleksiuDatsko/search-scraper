@@ -67,12 +67,12 @@ func (s *Storage) DeleteLinkFromList(listType string, id int) error {
 	if err != nil {
 		return err
 	}
-	return  nil
-}
-
-func (s *Storage) ImportFindedlist() {
+	return nil
 }
 
 func (s *Storage) ListConteins(listType string, filterType string, link types.Link) bool {
 	return false
+}
+
+func (s *Storage) ImportFindedlist() {
 }

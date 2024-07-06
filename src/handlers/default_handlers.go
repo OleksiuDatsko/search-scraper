@@ -10,9 +10,9 @@ import (
 	"strconv"
 )
 
-func GetWhitelist(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
+func GetLinkslist(st *storage.Storage, listType string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		wl, err := st.GetList("whitelist")
+		wl, err := st.GetList(listType)
 		if err != nil {
 			fmt.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -28,11 +28,11 @@ func GetWhitelist(st *storage.Storage) func(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func PostLinkToWhitelist(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
+func PostLinkToLinkslist(st *storage.Storage, listType string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var link types.Link
 		json.NewDecoder(r.Body).Decode(&link)
-		err := st.AddLinkToList("whitelist", link)
+		err := st.AddLinkToList(listType, link)
 		if err != nil {
 			fmt.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -42,14 +42,14 @@ func PostLinkToWhitelist(st *storage.Storage) func(w http.ResponseWriter, r *htt
 	}
 }
 
-func GetWhitelistLink(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
+func GetLinkslistLink(st *storage.Storage, listType string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		link, err := st.GetLinkFromList("whitelist", id)
+		link, err := st.GetLinkFromList(listType, id)
 		if err != nil {
 
 			if err == sql.ErrNoRows {
@@ -70,7 +70,7 @@ func GetWhitelistLink(st *storage.Storage) func(w http.ResponseWriter, r *http.R
 	}
 }
 
-func DeleteWhitelistLink(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
+func DeleteLinkslistLink(st *storage.Storage, listType string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
@@ -87,7 +87,7 @@ func DeleteWhitelistLink(st *storage.Storage) func(w http.ResponseWriter, r *htt
 	}
 }
 
-func PutWhitelistLink(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
+func PutLinkslistLink(st *storage.Storage, listType string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil {
