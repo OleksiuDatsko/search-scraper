@@ -77,7 +77,7 @@ func DeleteLinkslistLink(st *storage.Storage, listType string) func(w http.Respo
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		err = st.DeleteLinkFromList("whitelist", id)
+		err = st.DeleteLinkFromList(listType, id)
 		if err != nil {
 			fmt.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -97,7 +97,7 @@ func PutLinkslistLink(st *storage.Storage, listType string) func(w http.Response
 		var link types.Link
 		json.NewDecoder(r.Body).Decode(&link)
 		link.ID = id
-		err = st.UpdateLinkInList("whitelist", link)
+		err = st.UpdateLinkInList(listType, link)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				w.WriteHeader(http.StatusNotFound)

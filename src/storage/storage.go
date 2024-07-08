@@ -105,9 +105,19 @@ func (s *Storage) DeleteLinkFromList(listType string, id int) error {
 	return nil
 }
 
-func (s *Storage) ListConteins(listType string, filterType string, link types.Link) bool {
-	return false
+func (s *Storage) CleanList(listType string) error {
+	insertQuery := fmt.Sprintf("DELETE FROM %s", listType)
+	_, err := s.db.Exec(insertQuery)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (s *Storage) ImportFindedlist() {
+func (s *Storage) ConteinsLinkInList(listType string, link types.Link) (bool, error) {
+	_, err := s.db.Query("SELECT * FROM " + listType + " WHERE domain = '" + link.Domain + "'")
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

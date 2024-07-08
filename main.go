@@ -47,6 +47,8 @@ func main() {
 	}
 	fmt.Println("Done")
 
+	http.HandleFunc("GET /search", handlers.Search(st))
+
 	http.HandleFunc("GET /whitelist", middelware.LogRequest(handlers.GetLinkslist(st, "whitelist")))
 	http.HandleFunc("POST /whitelist", middelware.LogRequest(handlers.PostLinkToLinkslist(st, "whitelist")))
 	http.HandleFunc("GET /whitelist/{id}", middelware.LogRequest(handlers.GetLinkslistLink(st, "whitelist")))
@@ -64,6 +66,7 @@ func main() {
 	http.HandleFunc("GET /findedlist/{id}", middelware.LogRequest(handlers.GetLinkslistLink(st, "findedlist")))
 	http.HandleFunc("PUT /findedlist/{id}", middelware.LogRequest(handlers.PutLinkslistLink(st, "findedlist")))
 	http.HandleFunc("DELETE /findedlist/{id}", middelware.LogRequest(handlers.DeleteLinkslistLink(st, "findedlist")))
+	http.HandleFunc("POST /findedlist/import", middelware.LogRequest(handlers.ImportFindedlist(st)))
 
 	fmt.Println("Starting server...")
 	server := &http.Server{
