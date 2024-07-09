@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"search_scraper/src/storage"
-	"search_scraper/src/utils"
+	"strconv"
 	"strings"
 )
 
 func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		q := r.URL.RawQuery
+		q := r.URL.Query().Get("q")
+		d := r.URL.Query().Get("d")
 
 		fmt.Println(q)
 
@@ -20,10 +21,20 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if d == "" {
+			d = "0"
+		}
+
+		di, err := strconv.Atoi(d)
+		if err != nil {
+			fmt.Printf("Error: %s \n", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
 		q = strings.ReplaceAll(q, " ", "+")
 
-		fmt.Printf("Searching for: %s \n", q)
-		res := utils.Scraper(q)
+		res := st.FilteredScraping(q, di)
 		json_res, err := json.Marshal(res)
 		if err != nil {
 			fmt.Printf("Error: %s \n", err)
