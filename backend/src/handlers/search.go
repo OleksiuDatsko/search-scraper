@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"search_scraper/src/storage"
+	"search_scraper/src/utils"
 	"strconv"
 	"strings"
 )
@@ -13,8 +14,7 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
 		d := r.URL.Query().Get("d")
-
-		fmt.Println(q)
+		generatePage := r.URL.Query().Get("gp")
 
 		if q == "" {
 			w.WriteHeader(http.StatusBadRequest)
@@ -23,6 +23,9 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 
 		if d == "" {
 			d = "0"
+		}
+		if d == "full" {
+			d = "40"
 		}
 
 		di, err := strconv.Atoi(d)
@@ -34,7 +37,22 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 
 		q = strings.ReplaceAll(q, " ", "+")
 
-		res := st.FilteredScraping(q, di)
+		res, err := st.FilteredScraping(q, di)
+		if err != nil {
+			if err == utils.ErrBotDetected {
+				w.WriteHeader(http.StatusTooManyRequests)
+				return
+			} else {
+				fmt.Printf("Error: %s \n", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+		if generatePage == "1" {
+			w.Header().Add("Content-Type", "text/html")
+			w.Write([]byte(GeneratePage(res)))
+			return
+		}
 		json_res, err := json.Marshal(res)
 		if err != nil {
 			fmt.Printf("Error: %s \n", err)
@@ -44,4 +62,13 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(json_res)
 	}
+}
+
+func GeneratePage(sr storage.ScrapedResult) string {
+	var links string
+	for _, link := range sr.ScrapedLinks {
+		links += fmt.Sprintf("<li><a href=\"%s\" target=\"_blank\">%s</a></li>\n", link.Link, link.Domain)
+	}
+
+	return fmt.Sprintf("<html><body><ol>\n%s</ol></body></html>", links)
 }
