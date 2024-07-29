@@ -8,6 +8,7 @@ type Link struct {
 }
 
 type ScrapedLink struct {
+	ID      string `json:"id"`
 	Title   string `json:"title"`
 	Link    string `json:"link"`
 	Domain  string `json:"domain"`

@@ -6,6 +6,7 @@ import (
 	"search_scraper/src/types"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/google/uuid"
 )
 
 var ErrBotDetected = fmt.Errorf("bot detected")
@@ -40,12 +41,12 @@ func Srcape(gu string) (types.ScrapedPage, error) {
 
 	}
 	fmt.Println("ok, no bot detected")
-	fmt.Println(doc.Html())
 
 	doc.Find("div.g").Each(func(i int, result *goquery.Selection) {
 		link, _ := result.Find("a").First().Attr("href")
 
 		scrapedLinks = append(scrapedLinks, types.ScrapedLink{
+			ID:      uuid.New().String(),
 			Title:   result.Find("h3").First().Text(),
 			Link:    link,
 			Domain:  GetDomainFromURL(link),
