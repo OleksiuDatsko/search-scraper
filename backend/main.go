@@ -47,6 +47,8 @@ func main() {
 	}
 	fmt.Println("Done")
 
+	http.HandleFunc("OPTIONS /*", middelware.LogRequest(handlers.OptionsHandler()))
+
 	http.HandleFunc("GET /search", middelware.LogRequest(handlers.Search(st)))
 
 	http.HandleFunc("GET /whitelist", middelware.LogRequest(handlers.GetLinkslist(st, "whitelist")))

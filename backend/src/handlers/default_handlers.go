@@ -110,3 +110,12 @@ func PutLinkslistLink(st *storage.Storage, listType string) func(w http.Response
 		w.WriteHeader(http.StatusOK)
 	}
 }
+
+func OptionsHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.WriteHeader(http.StatusOK)
+	}
+}
