@@ -1,0 +1,23 @@
+name: Test and Build Backend
+on:
+    push:
+        paths:
+            - 'backend/**'
+            - '.github/workflows/backend.yml'
+jobs:
+    test:
+        name: Test Backend
+        runs-on: ubuntu-latest
+        steps:
+            - name: Get Code
+              uses: actions/checkout@v4
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                go-version-file: 'backend/go.mod'
+                check-latest: true
+                cache-dependency-path: backend/go.sum                
+            - name: Test
+              run: |
+                cd backend
+                go test ./...
