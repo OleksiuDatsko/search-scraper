@@ -16,7 +16,16 @@ jobs:
               with:
                 go-version-file: 'backend/go.mod'
                 check-latest: true
-                cache-dependency-path: backend/go.sum                
+                cache-dependency-path: backend/go.sum   
+            - name: Cache Go Dependencies
+              uses: actions/cache@v4
+              with:
+                path: $GOPATH/pkg/mod
+                key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+            - name: Install Dependencies
+              run: |
+                cd backend
+                go mod download             
             - name: Test
               run: |
                 cd backend
