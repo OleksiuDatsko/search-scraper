@@ -16,7 +16,6 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 FROM scratch
 
 COPY --from=builder /app /app
-COPY --from=builder /src/db.sqlite /
 
 EXPOSE 8080
 
