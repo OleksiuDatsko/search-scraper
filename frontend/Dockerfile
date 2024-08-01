@@ -2,12 +2,11 @@ FROM node:20 AS build
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json yarn.lock ./
 
 # Install dependencies
 RUN --mount=type=cache,target=/root/.yarn \
-    --mount=type=cache,target=/app/node_modules \
-    yarn
+    yarn install
 
 COPY . .
 # Build
@@ -20,7 +19,7 @@ FROM node:20-alpine
 RUN addgroup -S server_group && adduser -S server -G server_group
 
 COPY --from=build /app/build /app/build
-COPY --from=build /app/package*.json /app/
+COPY --from=build /app/package.json /app/
 
 USER server
 
