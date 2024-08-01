@@ -24,6 +24,7 @@ jobs:
       - name: Test
         run: |
           cd frontend
+          yarn playwright install
           yarn run test
   build:
     name: build & push

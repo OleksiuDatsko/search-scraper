@@ -51,13 +51,10 @@
 
 <section>
 	<div class="container m-auto">
+		<h1 class="h1 text-center">Search</h1>
 		<div class="mb-4 input-group input-group-divider grid-cols-[auto_1fr_auto_auto] bg-none">
 			<div class="input-group-shim">S</div>
-			<input
-				type="search"
-				placeholder="Search..."
-				bind:value={search_query}
-			/>
+			<input type="search" placeholder="Search..." bind:value={search_query} />
 			<input type="number" bind:value={depth} />
 			<button
 				class="variant-filled-secondary"
@@ -97,7 +94,12 @@
 			</div>
 		{/if}
 		{#if is_submit_error}
-			<p>Error fetching results. Please try again.</p>
+			<div class="alert variant-filled-warning m-4">
+				<div class="alert-message">
+					<h3 class="h3">ERROR</h3>
+					<p>Error fetching results. Please try again.</p>
+				</div>
+			</div>
 		{/if}
 	</div>
 </section>
