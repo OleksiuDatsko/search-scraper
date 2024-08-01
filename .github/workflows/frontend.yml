@@ -18,9 +18,13 @@ jobs:
             **/node_modules
           key: npm-${{ hashFiles('**/package-lock.json') }}
       - name: Install Dependencies
-        run: yarn
+        run: |
+          cd frontend
+          yarn
       - name: Test
-        run: yarn run test
+        run: |
+          cd frontend
+          yarn run test
   build:
     name: build & push
     runs-on: ubuntu-latest
