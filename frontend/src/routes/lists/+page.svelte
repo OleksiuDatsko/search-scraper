@@ -2,6 +2,7 @@
 	import { Tab, TabGroup } from '@skeletonlabs/skeleton';
 	import ListListItem from '$lib/components/Tables/ListTable/ListTable.svelte';
 	import ImportFindedList from '$lib/components/ImportFindedList/ImportFindedList.svelte';
+	import AddNewUrlToWhitelist from '$lib/components/AddNewElements/AddNewURLToLinklist.svelte';
 
 	let tabSet: number = 0;
 </script>
@@ -19,6 +20,7 @@
 			{:else if tabSet === 1}
 				<ListListItem list_type="blacklist" />
 			{:else if tabSet === 2}
+				<AddNewUrlToWhitelist list_type="whitelist"/>
 				<ListListItem list_type="whitelist" />
 			{/if}
 		</svelte:fragment>
