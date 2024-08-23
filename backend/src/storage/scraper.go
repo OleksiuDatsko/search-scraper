@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"search_scraper/src/types"
 	"search_scraper/src/utils"
 )
@@ -21,21 +22,21 @@ func (s *Storage) FilterLinks(gsl []types.ScrapedLink, p types.ScrapedPage) []ty
 			Domain: l.Domain,
 		})
 		if err != nil && err != sql.ErrNoRows {
-			fmt.Println(err.Error())
+			log.Printf("Error: %s \n", err)
 		}
 		bl, err := s.ConteinsLinkInList("blacklist", types.Link{
 			Url:    l.Link,
 			Domain: l.Domain,
 		})
 		if err != nil && err != sql.ErrNoRows {
-			fmt.Println(err)
+			log.Printf("Error: %s \n", err)
 		}
 		fl, err := s.ConteinsLinkInList("findedlist", types.Link{
 			Url:    l.Link,
 			Domain: l.Domain,
 		})
 		if err != nil && err != sql.ErrNoRows {
-			fmt.Println(err)
+			log.Printf("Error: %s \n", err)
 		}
 
 		for _, gl := range gsl {
@@ -58,7 +59,7 @@ func (s *Storage) FilteredScraping(q string, d int) (ScrapedResult, error) {
 	var sl []types.ScrapedLink
 	fp, err := utils.Srcape(fmt.Sprintf("/search?q=%s", q))
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Error: %s \n", err)
 		return ScrapedResult{sl, 0}, err
 	}
 	sl = append(sl, s.FilterLinks(sl, fp)...)
@@ -69,7 +70,7 @@ func (s *Storage) FilteredScraping(q string, d int) (ScrapedResult, error) {
 		fmt.Println(i)
 		p, err := utils.Srcape(fp.NextPageLink)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("Error: %s \n", err)
 			return ScrapedResult{sl, 0}, err
 		}
 		total += len(p.ScrapedLink)

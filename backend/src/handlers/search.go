@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"search_scraper/src/storage"
 	"search_scraper/src/types"
@@ -32,7 +33,7 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 
 		di, err := strconv.Atoi(d)
 		if err != nil {
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -63,7 +64,7 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 
 				return
 			} else {
-				fmt.Printf("Error: %s \n", err)
+				log.Printf("Error: %s \n", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -75,7 +76,7 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 		}
 		json_res, err := json.Marshal(res)
 		if err != nil {
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
