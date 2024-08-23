@@ -1,23 +1,22 @@
 <script lang="ts">
 	import SearchListItem from '$lib/components/ListItems/SearchListItem.svelte';
 	import type { SearchResult } from '$lib/utils/types';
+	import { searchedResults } from '$lib/utils/store';
 
 	let search_query = '';
-	let search_results: SearchResult | null = null;
 	let is_submited = false;
 	let is_submit_error = false;
 	let is_loading = false;
 	let is_bot_detected = false;
 	let depth = 5;
-
-	$: console.log(search_query);
-
+	
 	async function fetchSearchResults(): Promise<SearchResult> {
 		is_loading = true;
 		try {
 			const response = await fetch(`http://localhost:8080/search?q=${search_query}&d=${depth}`);
 			if (response.ok) {
 				const data: SearchResult = await response.json();
+				data.query = search_query;
 				is_bot_detected = response.status === 226;
 				return data;
 			} else {
@@ -37,10 +36,9 @@
 			is_submited = true;
 			is_submit_error = false;
 			try {
-				search_results = await fetchSearchResults();
+				$searchedResults = await fetchSearchResults();
 			} catch (error) {
 				is_submit_error = true;
-				search_results = null;
 			}
 		} else {
 			is_submit_error = true;
@@ -71,7 +69,7 @@
 		{#if is_loading}
 			<div class="alert variant-outline">Loading...</div>
 		{/if}
-		{#if search_results}
+		{#if $searchedResults}
 			{#if is_bot_detected}
 				<aside class="alert variant-filled-warning m-4">
 					<div class="alert-message">
@@ -82,11 +80,12 @@
 			{/if}
 			<div class="card p-4">
 				<header class="card-header">
-					<h2 class="h2">Results ({search_results.result_rating}%)</h2>
+					<h2 class="h2">Results ({$searchedResults.result_rating.toPrecision(3)}%)</h2>
+					<span>{$searchedResults.query} n: {$searchedResults.scraped_link.length}</span>
 				</header>
 				<section class="p-4">
 					<ul class="list">
-						{#each search_results.scraped_link as link (link.id)}
+						{#each $searchedResults.scraped_link as link (link.id)}
 							<SearchListItem {link} />
 						{/each}
 					</ul>

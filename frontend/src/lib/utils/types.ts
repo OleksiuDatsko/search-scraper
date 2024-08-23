@@ -7,6 +7,7 @@ export interface ScrapedLink {
 }
 export interface SearchResult {
     scraped_link: ScrapedLink[];
+    query: string;
     result_rating: number;
 }
 
