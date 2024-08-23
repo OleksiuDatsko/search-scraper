@@ -14,7 +14,6 @@ type ScrapedResult struct {
 }
 
 func (s *Storage) FilterLinks(gsl []types.ScrapedLink, p types.ScrapedPage) []types.ScrapedLink {
-	fmt.Println(p.NextPageLink)
 	var sl []types.ScrapedLink
 	for _, l := range p.ScrapedLink {
 		wl, err := s.ConteinsLinkInList("whitelist", types.Link{
@@ -48,11 +47,9 @@ func (s *Storage) FilterLinks(gsl []types.ScrapedLink, p types.ScrapedPage) []ty
 
 		if (!fl && !bl) || (wl && !bl) {
 			sl = append(sl, l)
-			fmt.Printf("\t\t%30s\t%t\t%t\t%t\n", l.Domain, fl, wl, bl)
 		}
 	}
 	return sl
-
 }
 
 func (s *Storage) FilteredScraping(q string, d int) (ScrapedResult, error) {
@@ -67,7 +64,6 @@ func (s *Storage) FilteredScraping(q string, d int) (ScrapedResult, error) {
 	total := len(fp.ScrapedLink)
 
 	for i := 0; i < d && fp.NextPageLink != ""; i++ {
-		fmt.Println(i)
 		p, err := utils.Srcape(fp.NextPageLink)
 		if err != nil {
 			log.Printf("Error: %s \n", err)
@@ -76,7 +72,6 @@ func (s *Storage) FilteredScraping(q string, d int) (ScrapedResult, error) {
 		total += len(p.ScrapedLink)
 		sl = append(sl, s.FilterLinks(sl, p)...)
 	}
-	fmt.Printf("T: %d, F: %d (%2.2f)", total, len(sl), float64(len(sl))/float64(total)*100)
 	r := float64(len(sl)) / float64(total) * 100
 	return ScrapedResult{sl, r}, nil
 }

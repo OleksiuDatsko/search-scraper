@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"search_scraper/src/storage"
-	"search_scraper/src/types"
 	"search_scraper/src/utils"
 
 	"strconv"
@@ -43,25 +42,7 @@ func Search(st *storage.Storage) func(w http.ResponseWriter, r *http.Request) {
 		res, err := st.FilteredScraping(q, di)
 		if err != nil {
 			if err == utils.ErrBotDetected {
-				result := storage.ScrapedResult{
-					ScrapedLinks: []types.ScrapedLink{
-						{ID: "1", Title: "Example Title 1", Link: "http://example.com/1", Domain: "example.com", Snipped: "This is an example snippet for link 1."},
-						{ID: "2",Title: "Example Title 2", Link: "http://example.com/2", Domain: "example.com", Snipped: "This is an example snippet for link 2."},
-						{ID: "3",Title: "Example Title 3", Link: "http://example.com/3", Domain: "example.com", Snipped: "This is an example snippet for link 3."},
-
-					
-					},
-					ResultRating: 4.5,
-				}
-				json_res, err := json.Marshal(result)
-				if err != nil {
-					fmt.Printf("Error: %s \n", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
 				w.WriteHeader(http.StatusIMUsed)
-				w.Write(json_res)
-
 				return
 			} else {
 				log.Printf("Error: %s \n", err)
