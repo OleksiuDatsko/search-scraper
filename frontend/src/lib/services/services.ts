@@ -5,11 +5,13 @@ const BACKEND_URL = 'http://127.0.0.1:8080';
 export async function fetchSearchResults(search_query: string, depth: number): Promise<SearchResult> {
     try {
         const response = await fetch(`${BACKEND_URL}/search?q=${search_query}&d=${depth}`);
-        if (response.ok) {
+        if (response.ok && response.status !== 226) {
             const data: SearchResult = await response.json();
             data.query = search_query;
-            data.bot_detected = response.status === 226;
             return data;
+        } else if (response.status === 226) {
+            console.error('Bot detected');
+            return { query: search_query, bot_detected: true, result_rating: 0, scraped_link: [] };
         } else {
             console.log('Error:', response.status);
             throw new Error('Failed to fetch search results');

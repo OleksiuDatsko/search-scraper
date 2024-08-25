@@ -8,7 +8,7 @@
 	let is_submit_error = false;
 	let is_loading = false;
 	let depth = 5;
-	
+
 	async function handleSubmit() {
 		if (search_query !== '') {
 			is_submited = true;
@@ -33,7 +33,12 @@
 		<h1 class="h1 text-center">Search</h1>
 		<div class="mb-4 input-group input-group-divider grid-cols-[auto_1fr_auto_auto] bg-none">
 			<div class="input-group-shim">S</div>
-			<input type="search" placeholder="Search..." bind:value={search_query} />
+			<input
+				type="search"
+				placeholder="Search..."
+				bind:value={search_query}
+				on:keydown={(e) => e.key === 'Enter' && handleSubmit()}
+			/>
 			<input type="number" bind:value={depth} />
 			<button
 				class="variant-filled-secondary"
@@ -50,15 +55,15 @@
 		{#if is_loading}
 			<div class="alert variant-outline">Loading...</div>
 		{/if}
-		{#if $searchedResults}
-			{#if $searchedResults.bot_detected}
-				<aside class="alert variant-filled-warning m-4">
-					<div class="alert-message">
-						<h3 class="h3">BOT DETECTED</h3>
-						<p>Scraper bot detected, need to wait a little bit.</p>
-					</div>
-				</aside>
-			{/if}
+		{#if $searchedResults.bot_detected}
+			<aside class="alert variant-filled-warning m-4">
+				<div class="alert-message">
+					<h3 class="h3">BOT DETECTED</h3>
+					<p>Scraper bot detected, need to wait a little bit.</p>
+				</div>
+			</aside>
+		{/if}
+		{#if $searchedResults.scraped_link.length > 0}
 			<div class="card p-4">
 				<header class="card-header">
 					<h2 class="h2">Results ({$searchedResults.result_rating.toPrecision(3)}%)</h2>
