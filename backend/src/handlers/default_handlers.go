@@ -32,12 +32,19 @@ func PostLinkToLinkslist(st *storage.Storage, listType string) func(w http.Respo
 	return func(w http.ResponseWriter, r *http.Request) {
 		var link types.Link
 		json.NewDecoder(r.Body).Decode(&link)
-		err := st.AddLinkToList(listType, link)
+		link, err := st.AddLinkToList(listType, link)
 		if err != nil {
 			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		json_wl, err := json.Marshal(link)
+		if err != nil {
+			log.Printf("Error: %s \n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Write(json_wl)
 		w.WriteHeader(http.StatusCreated)
 	}
 }

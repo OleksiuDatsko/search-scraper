@@ -204,6 +204,7 @@ func TestAddLinkToList(t *testing.T) {
 		args
 		setUp          func(t *testing.T) func(t *testing.T)
 		wantDBInstance []types.Link
+		want           types.Link
 		wantErr        error
 	}{
 		"valid_link": {
@@ -231,6 +232,7 @@ func TestAddLinkToList(t *testing.T) {
 			wantDBInstance: []types.Link{
 				{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			},
+			want: types.Link{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			wantErr: nil,
 		},
 		"invalid_link_no_domain": {
@@ -258,6 +260,7 @@ func TestAddLinkToList(t *testing.T) {
 			wantDBInstance: []types.Link{
 				{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			},
+			want: types.Link{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			wantErr: nil,
 		},
 		"invalid_link_no_url": {
@@ -283,6 +286,7 @@ func TestAddLinkToList(t *testing.T) {
 				}
 			},
 			wantDBInstance: nil,
+			want:           types.Link{},
 			wantErr:        ErrOnURL,
 		},
 		"invalid_link_no_filter_type": {
@@ -310,6 +314,7 @@ func TestAddLinkToList(t *testing.T) {
 			wantDBInstance: []types.Link{
 				{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			},
+			want: types.Link{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			wantErr: nil,
 		},
 	}
@@ -319,8 +324,9 @@ func TestAddLinkToList(t *testing.T) {
 			tearDown := tt.setUp(t)
 			defer tearDown(t)
 
-			err := st.AddLinkToList(tt.listType, tt.link)
+			link, err := st.AddLinkToList(tt.listType, tt.link)
 			assert.Equal(t, err, tt.wantErr)
+			assert.Equal(t, tt.want, link)
 
 			links, err := st.GetList(tt.listType)
 			if err != nil {

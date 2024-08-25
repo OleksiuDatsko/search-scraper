@@ -41,7 +41,7 @@ func ImportFindedlist(st *storage.Storage) func(w http.ResponseWriter, r *http.R
 			if record[2] == "" {
 				continue
 			}
-			err = st.AddLinkToList("findedlist", utils.GetLinkFromCVSRow(record))
+			_, err = st.AddLinkToList("findedlist", utils.GetLinkFromCVSRow(record))
 			if err != nil {
 				log.Printf("Error: %s \n", err)
 				w.WriteHeader(http.StatusInternalServerError)

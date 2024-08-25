@@ -42,10 +42,10 @@ func (s *Storage) GetList(listType string) ([]types.Link, error) {
 	return links, nil
 }
 
-func (s *Storage) AddLinkToList(listType string, link types.Link) error {
+func (s *Storage) AddLinkToList(listType string, link types.Link) (types.Link, error) {
 	insertQuery := fmt.Sprintf("INSERT INTO %s (domain, url, filter_type) VALUES (?, ?, ?);", listType)
 	if link.Url == "" {
-		return ErrOnURL
+		return types.Link{}, ErrOnURL
 	}
 	if link.FilterType == "" {
 		link.FilterType = "domain"
@@ -54,8 +54,18 @@ func (s *Storage) AddLinkToList(listType string, link types.Link) error {
 		link.Domain = utils.GetDomainFromURL(link.Url)
 	}
 
-	_, err := s.db.Exec(insertQuery, link.Domain, link.Url, link.FilterType)
-	return err
+	r, err := s.db.Exec(insertQuery, link.Domain, link.Url, link.FilterType)
+	if err != nil {
+		return types.Link{}, err
+	}
+
+	id, err := r.LastInsertId()
+	if err != nil {
+		return types.Link{}, err
+	}
+
+	link.ID = int(id)
+	return link, err
 }
 
 func (s *Storage) GetLinkFromList(listType string, id int) (types.Link, error) {
