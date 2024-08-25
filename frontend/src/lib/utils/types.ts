@@ -8,6 +8,7 @@ export interface ScrapedLink {
 export interface SearchResult {
     scraped_link: ScrapedLink[];
     query: string;
+    bot_detected: boolean;
     result_rating: number;
 }
 

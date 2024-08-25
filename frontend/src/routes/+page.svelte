@@ -1,44 +1,25 @@
 <script lang="ts">
 	import SearchListItem from '$lib/components/ListItems/SearchListItem.svelte';
-	import type { SearchResult } from '$lib/utils/types';
 	import { searchedResults } from '$lib/utils/store';
+	import { fetchSearchResults } from '$lib/services/services';
 
 	let search_query = '';
 	let is_submited = false;
 	let is_submit_error = false;
 	let is_loading = false;
-	let is_bot_detected = false;
 	let depth = 5;
 	
-	async function fetchSearchResults(): Promise<SearchResult> {
-		is_loading = true;
-		try {
-			const response = await fetch(`http://localhost:8080/search?q=${search_query}&d=${depth}`);
-			if (response.ok) {
-				const data: SearchResult = await response.json();
-				data.query = search_query;
-				is_bot_detected = response.status === 226;
-				return data;
-			} else {
-				console.log('Error:', response.status);
-				throw new Error('Failed to fetch search results');
-			}
-		} catch (error) {
-			console.error(error);
-			throw error;
-		} finally {
-			is_loading = false;
-		}
-	}
-
 	async function handleSubmit() {
 		if (search_query !== '') {
 			is_submited = true;
 			is_submit_error = false;
 			try {
-				$searchedResults = await fetchSearchResults();
+				is_loading = true;
+				$searchedResults = await fetchSearchResults(search_query, depth);
 			} catch (error) {
 				is_submit_error = true;
+			} finally {
+				is_loading = false;
 			}
 		} else {
 			is_submit_error = true;
@@ -70,7 +51,7 @@
 			<div class="alert variant-outline">Loading...</div>
 		{/if}
 		{#if $searchedResults}
-			{#if is_bot_detected}
+			{#if $searchedResults.bot_detected}
 				<aside class="alert variant-filled-warning m-4">
 					<div class="alert-message">
 						<h3 class="h3">BOT DETECTED</h3>
