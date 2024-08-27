@@ -122,18 +122,21 @@ func (s *Storage) CleanList(listType string) error {
 }
 
 func (s *Storage) ConteinsLinkInList(listType string, link types.Link) (bool, error) {
-	var _link types.Link
-	row, err := s.db.Query("SELECT * FROM " + listType + " WHERE domain = '" + link.Domain + "'")
+	var c int
+	insertQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE domain = ?", listType)
+	row, err := s.db.Query(insertQuery, link.Domain)
 	if err != nil {
 		return false, err
 	}
 	row.Next()
 	defer row.Close()
-	err = row.Scan(&_link.ID, &_link.Domain, &_link.Url, &_link.FilterType)
-	if err != nil && err != sql.ErrNoRows {
-		return false, nil
-	} else if err != nil {
+	err = row.Scan(&c)
+	if err != nil {
 		return false, err
 	}
-	return true, nil
+
+	if c > 0 {
+		return true, nil
+	}
+	return false, nil
 }

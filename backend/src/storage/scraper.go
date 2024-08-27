@@ -39,6 +39,7 @@ func (s *Storage) FilterLinks(gsl []types.ScrapedLink, p types.ScrapedPage) []ty
 		}
 
 		for _, gl := range gsl {
+			// remove dublicats from result
 			if l.Domain == gl.Domain {
 				fl = true
 				break
@@ -47,7 +48,7 @@ func (s *Storage) FilterLinks(gsl []types.ScrapedLink, p types.ScrapedPage) []ty
 
 		if (!fl && !bl) || (wl && !bl) {
 			sl = append(sl, l)
-		}
+		} 
 	}
 	return sl
 }
