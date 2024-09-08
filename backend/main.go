@@ -21,7 +21,7 @@ func main() {
 	fmt.Println("Connecting to database...")
 	db, err := sql.Open("sqlite3", "./db.sqlite")
 	if err != nil {
-		fmt.Printf("Error: %s \n", err)
+		log.Printf("Error: %s \n", err)
 		return
 	}
 	defer func() {
@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("Connected")
 	st, err := storage.Init(db)
 	if err != nil {
-		fmt.Printf("Error: %s \n", err)
+		log.Printf("Error: %s \n", err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func main() {
 	}
 	fmt.Println("Done")
 
-	http.HandleFunc("OPTIONS /*", middelware.LogRequest(handlers.OptionsHandler()))
+	http.HandleFunc("OPTIONS /", middelware.LogRequest(handlers.OptionsHandler()))
 
 	http.HandleFunc("GET /search", middelware.LogRequest(handlers.Search(st)))
 

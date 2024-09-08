@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { Link } from '$lib/utils/types';
 	import type { ModalSettings } from '@skeletonlabs/skeleton';
-
+	import { updateLink, deleteLink } from '$lib/services/services';
 	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { SvelteComponent } from 'svelte';
+	import { links } from '$lib/utils/store';
 
 	const modalStore = getModalStore();
 
@@ -17,8 +19,8 @@
 		valueAttr: { type: 'text', minlength: 3, required: true },
 		response: (r: string) => {
 			if (r) {
-				link.url = r;
-				updateLink();
+				link.domain = r;
+				updateLink(link, listType);
 			}
 		}
 	};
@@ -32,7 +34,7 @@
 		response: (r: string) => {
 			if (r) {
 				link.url = r;
-				updateLink();
+				updateLink(link, listType);
 			}
 		}
 	};
@@ -43,26 +45,13 @@
 		body: 'Are you sure you wish to delete this link?',
 		response: (r: boolean) => {
 			if (r) {
-				deleteLink();
+				deleteLink(link, listType);
+				$links = $links.filter((l) => l.id !== link.id);
 			}
 		}
 	};
 
-	function updateLink() {
-		fetch(`http://localhost:8080/${listType}/${link.id}`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ domain: link.domain, url: link.url, filterType: link.filter_type })
-		});
-	}
 
-	function deleteLink() {
-		fetch(`http://localhost:8080/${listType}/${link.id}`, {
-			method: 'DELETE'
-		});
-	}
 </script>
 
 <tr>

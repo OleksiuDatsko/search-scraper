@@ -204,6 +204,7 @@ func TestAddLinkToList(t *testing.T) {
 		args
 		setUp          func(t *testing.T) func(t *testing.T)
 		wantDBInstance []types.Link
+		want           types.Link
 		wantErr        error
 	}{
 		"valid_link": {
@@ -231,6 +232,7 @@ func TestAddLinkToList(t *testing.T) {
 			wantDBInstance: []types.Link{
 				{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			},
+			want:    types.Link{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			wantErr: nil,
 		},
 		"invalid_link_no_domain": {
@@ -258,6 +260,7 @@ func TestAddLinkToList(t *testing.T) {
 			wantDBInstance: []types.Link{
 				{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			},
+			want:    types.Link{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			wantErr: nil,
 		},
 		"invalid_link_no_url": {
@@ -283,6 +286,7 @@ func TestAddLinkToList(t *testing.T) {
 				}
 			},
 			wantDBInstance: nil,
+			want:           types.Link{},
 			wantErr:        ErrOnURL,
 		},
 		"invalid_link_no_filter_type": {
@@ -310,6 +314,7 @@ func TestAddLinkToList(t *testing.T) {
 			wantDBInstance: []types.Link{
 				{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			},
+			want:    types.Link{ID: 1, Domain: "example.com", Url: "http://example.com", FilterType: "domain"},
 			wantErr: nil,
 		},
 	}
@@ -319,8 +324,9 @@ func TestAddLinkToList(t *testing.T) {
 			tearDown := tt.setUp(t)
 			defer tearDown(t)
 
-			err := st.AddLinkToList(tt.listType, tt.link)
+			link, err := st.AddLinkToList(tt.listType, tt.link)
 			assert.Equal(t, err, tt.wantErr)
+			assert.Equal(t, tt.want, link)
 
 			links, err := st.GetList(tt.listType)
 			if err != nil {
@@ -719,6 +725,145 @@ func TestDeleteLinkFromList(t *testing.T) {
 
 			err := tt.args.st.DeleteLinkFromList(tt.listType, tt.linkID)
 			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestConteinsLinkIntoList(t *testing.T) {
+	tearDown, db := SetUpTestDB(t)
+	defer tearDown(t)
+
+	st, err := Init(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	type args struct {
+		st       *Storage
+		listType string
+		link     types.Link
+	}
+
+	tests := map[string]struct {
+		args
+		setUp   func(t *testing.T) func(t *testing.T)
+		wantErr error
+		want    bool
+	}{
+		"empty_database": {
+			args: args{
+				st:       st,
+				listType: "links",
+				link: types.Link{
+					Domain: "example1.com",
+					Url:    "http://example1.com",
+				},
+			},
+			setUp: func(t *testing.T) func(t *testing.T) {
+				return func(t *testing.T) {
+					_, err = db.Exec("DELETE FROM links")
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+			},
+			wantErr: nil,
+			want:    false,
+		},
+		"filled_database_conteins_link": {
+			args: args{
+				st:       st,
+				listType: "links",
+				link: types.Link{
+					Domain: "example1.com",
+					Url:    "http://example1.com",
+				},
+			},
+			setUp: func(t *testing.T) func(t *testing.T) {
+				_, err = db.Exec(`
+				INSERT INTO links (domain, url, filter_type) VALUES ('example1.com', 'http://example1.com', 'domain');
+				INSERT INTO links (domain, url, filter_type) VALUES ('example2.com', 'http://example2.com', 'domain');
+				INSERT INTO links (domain, url, filter_type) VALUES ('example3.com', 'http://example3.com', 'domain');
+				`)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return func(t *testing.T) {
+					_, err = db.Exec("DELETE FROM links")
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+			},
+			wantErr: nil,
+			want:    true,
+		},
+		"filled_database_conteins_multiple_link": {
+			args: args{
+				st:       st,
+				listType: "links",
+				link: types.Link{
+					Domain: "example3.com",
+					Url:    "http://example3.com",
+				},
+			},
+			setUp: func(t *testing.T) func(t *testing.T) {
+				_, err = db.Exec(`
+				INSERT INTO links (domain, url, filter_type) VALUES ('example1.com', 'http://example1.com', 'domain');
+				INSERT INTO links (domain, url, filter_type) VALUES ('example3.com', 'http://example3.com', 'domain');
+				INSERT INTO links (domain, url, filter_type) VALUES ('example3.com', 'http://example3.com', 'domain');
+				`)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return func(t *testing.T) {
+					_, err = db.Exec("DELETE FROM links")
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+			},
+			wantErr: nil,
+			want:    true,
+		},
+		"filled_database_dosent_contein_link": {
+			args: args{
+				st:       st,
+				listType: "links",
+				link: types.Link{
+					Domain: "example4.com",
+					Url:    "http://example4.com",
+				},
+			},
+			setUp: func(t *testing.T) func(t *testing.T) {
+				_, err = db.Exec(`
+				INSERT INTO links (domain, url, filter_type) VALUES ('example1.com', 'http://example1.com', 'domain');
+				INSERT INTO links (domain, url, filter_type) VALUES ('example2.com', 'http://example2.com', 'domain');
+				INSERT INTO links (domain, url, filter_type) VALUES ('example3.com', 'http://example3.com', 'domain');
+				`)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return func(t *testing.T) {
+					_, err = db.Exec("DELETE FROM links")
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+			},
+			wantErr: nil,
+			want:    false,
+		},
+	}
+
+	for key, tt := range tests {
+		t.Run(key, func(t *testing.T) {
+			tearDown := tt.setUp(t)
+			defer tearDown(t)
+
+			got, err := tt.args.st.ConteinsLinkInList(tt.listType, tt.link)
+			assert.Equal(t, tt.wantErr, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

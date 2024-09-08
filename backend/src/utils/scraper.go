@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"search_scraper/src/types"
 
@@ -15,7 +16,7 @@ func Srcape(gu string) (types.ScrapedPage, error) {
 	var scrapedLinks []types.ScrapedLink
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://www.google.com%s", gu), nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Error: %s \n", err)
 		return types.ScrapedPage{}, err
 	}
 
@@ -24,14 +25,14 @@ func Srcape(gu string) (types.ScrapedPage, error) {
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Error: %s \n", err)
 		return types.ScrapedPage{}, err
 	}
 	defer res.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Error: %s \n", err)
 		return types.ScrapedPage{}, err
 
 	}
@@ -40,7 +41,6 @@ func Srcape(gu string) (types.ScrapedPage, error) {
 		return types.ScrapedPage{}, ErrBotDetected
 
 	}
-	fmt.Println("ok, no bot detected")
 
 	doc.Find("div.g").Each(func(i int, result *goquery.Selection) {
 		link, _ := result.Find("a").First().Attr("href")

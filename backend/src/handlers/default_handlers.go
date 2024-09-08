@@ -3,7 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"search_scraper/src/storage"
 	"search_scraper/src/types"
@@ -14,13 +14,13 @@ func GetLinkslist(st *storage.Storage, listType string) func(w http.ResponseWrit
 	return func(w http.ResponseWriter, r *http.Request) {
 		wl, err := st.GetList(listType)
 		if err != nil {
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		json_wl, err := json.Marshal(wl)
 		if err != nil {
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -32,12 +32,19 @@ func PostLinkToLinkslist(st *storage.Storage, listType string) func(w http.Respo
 	return func(w http.ResponseWriter, r *http.Request) {
 		var link types.Link
 		json.NewDecoder(r.Body).Decode(&link)
-		err := st.AddLinkToList(listType, link)
+		link, err := st.AddLinkToList(listType, link)
 		if err != nil {
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		json_wl, err := json.Marshal(link)
+		if err != nil {
+			log.Printf("Error: %s \n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Write(json_wl)
 		w.WriteHeader(http.StatusCreated)
 	}
 }
@@ -56,13 +63,13 @@ func GetLinkslistLink(st *storage.Storage, listType string) func(w http.Response
 				w.WriteHeader(http.StatusNotFound)
 				return
 			}
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		json_link, err := json.Marshal(link)
 		if err != nil {
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -79,7 +86,7 @@ func DeleteLinkslistLink(st *storage.Storage, listType string) func(w http.Respo
 		}
 		err = st.DeleteLinkFromList(listType, id)
 		if err != nil {
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -103,7 +110,7 @@ func PutLinkslistLink(st *storage.Storage, listType string) func(w http.Response
 				w.WriteHeader(http.StatusNotFound)
 				return
 			}
-			fmt.Printf("Error: %s \n", err)
+			log.Printf("Error: %s \n", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
